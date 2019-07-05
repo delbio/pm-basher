@@ -5,6 +5,44 @@
 # Usage: pm-basher list
 
 echo "** Basher **"
-basher list
+#basher list
 
+for package_path in ${BASHER_PACKAGES_PATH}/*/*
+do
+  site=""
+  use_ssh=""
+  ref=""
+  user=""
+  name=""
 
+  if [ -d "$package_path/.git" ]; then
+    git_url="$(cat $package_path/.git/config | grep url | awk '{print $3}')"
+    if [[ "${git_url}" = https://*/*/* ]]; then
+      IFS=/ read schema empty site user name <<< "${git_url}"
+    elif [[ "${git_url}" = git@*:*/* ]]; then
+      use_ssh='x'
+      IFS=: read site_with_schema full_package <<< "${git_url}"
+      IFS=@ read schema site <<< "${site_with_schema}"
+      IFS=/ read user name <<< "${full_package}"
+    fi
+
+    if [[ "${name}" = *.git ]]; then name="${name:0:-4}"; fi
+    if [[ "${site}" = github.com ]]; then site=""; fi
+
+    git_branch="$(cat $package_path/.git/config | grep branch | awk '{print $2}')"
+    ref="${git_branch:1:-2}"
+    if [[ "${ref}" = master ]]; then ref=""; fi
+  else
+    user="$(dirname "$package_path")"
+    user="${user##*/}"
+    name="${package_path##*/}"
+  fi
+
+  installed_package=""
+  if [[ "${use_ssh}" = x ]]; then installed_package+="--ssh "; fi
+  if [ ! -z "${site}" ]; then installed_package+="${site}/"; fi
+  installed_package+="$user/$name"
+  if [ ! -z "${ref}" ]; then installed_package+="@${ref}"; fi
+
+  echo $installed_package
+done
