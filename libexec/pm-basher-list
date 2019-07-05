@@ -4,9 +4,6 @@
 #
 # Usage: pm-basher list
 
-echo "** Basher **"
-#basher list
-
 for package_path in ${BASHER_PACKAGES_PATH}/*/*
 do
   site=""
