@@ -5,6 +5,8 @@
 #
 # Usage: pm-basher update
 #
+pushd ${BASHER_ROOT}
+git pull
+popd
 
-basher update
 for p in $(basher outdated); do echo "Update "$p" ..."; basher upgrade $p; done
